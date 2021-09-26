@@ -35,6 +35,7 @@ where
 
     let slope = (accumulator.4 - accumulator.1 * accumulator.3 / accumulator.0) / (accumulator.2 - accumulator.1 * accumulator.1 / accumulator.0);
     let result = (slope, (accumulator.3 - slope * accumulator.1) / accumulator.0);
+
     return Some(result);
 }
 
