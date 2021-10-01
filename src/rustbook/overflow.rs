@@ -1,5 +1,5 @@
-pub fn overflow() {
-    let a: u8 = 128;
+pub fn run(a: u8) {
+    println!("Testing some overflows... for {}", a);
 
     let b = u8::checked_add(a, 128);
     if b.is_none() {
