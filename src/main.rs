@@ -19,4 +19,6 @@ fn main() {
         "80F is {:.1}C",
         rustbook::temperature::fahrenheit_to_celsius(80.0)
     );
+
+    rustbook::twelve_days::write_song();
 }
