@@ -4,6 +4,11 @@ mod rustbook;
 fn main() {
     println!("Hello, world!");
 
+    let a = [1,2,3,4,5];
+    println!("{:?}", a);
+    let b = &a[1..3];
+    println!("{:?}", b);
+
     misc::linear_regression::run();
 
     rustbook::overflow::run(127);
