@@ -112,12 +112,16 @@ This is my notes and samples from learning rust
   - Integers: `i8`, `i16`, `i32`, `i64`, `i128`, `isize` (used for pointer size or indexing collections)
   - Unsigned integers: `u8`, `u16`, `u32`, `u64`, `u128`, `usize`
   - Literals `0x` (hex), `0o` (octal), `0b` (binary), `_` (spacer), `b'A'` (u8 byte literal)
+    - Can include a type suffix, e.g. `let a = 3i32;`
   - Integer overflow only at DEBUG (generates a Panic at runtime)
     - `checked_add` and `checked_sub` will return None if overflow
     - `wrapped_add` and `wrapped_sub` will wrap around at the bounds
     - `overflowing_add` and `overflowing_sub` will return the wrapping value and a boolean indicating overflow
     - `saturating_add` and `saturating_sub` will saturate at the bounds
 - Floats: `f32`, `f64`
+- **All numeric type conversion is explicit**
+  - Comparisons must be on same types
+  - `as` keyword for casting to a type
 - Boolean: `bool` - `true` / `false`
 - Characters: `char`
   - 4 byte literal
@@ -138,6 +142,7 @@ This is my notes and samples from learning rust
   - Access via `..` range: `let a = [1, 2, 3, 4, 5]; a[..]`
     - Range is a `Range<usize>`
     - Inclusive of start, and exclusive of end
+    - Drop first index implies `0`, drop last index implies `len`
 - Strings:
   - Can have string literals as well but they are immutable
     - Hardcoded into the compiled output
@@ -148,6 +153,31 @@ This is my notes and samples from learning rust
   - Heap allocated
   - Can be mutated
 
+## Complex Types
+
+- No constructors but everything has a literal form
+- By convention types often have a `new` method
+- `.` to access properties
+- A `struct` is similar to an object
+  - No inheritance, some capabilities with traits
+  - Like a tuple but with named elements
+  - Entire instance is mutable or not
+- Creating
+  - Use field init syntax `Complex { real: 1, imaginary: 2 }`
+  - If variable matches field name can avoid duplicating
+  - `..` to expand an existing struct copying to new one
+    - This will move the values into the new struct
+- Can create without field names - *struct tuple* 
+  - `struct Color(i8, i8, i8);`
+- Can also create a *unit-like struct*: `struct UnitLikeStruct;`
+- Methods for a struct are implemented inside an `impl` block with same name
+  - For instance methods, first parameter is `&self`, short for `self: &Self`
+    - Like parameters can take ownership (`self`), borrow (`&self`) or mutable borrow (`&mut self`)
+  - If no `self` parameter, then becomes like a static method
+  - Can overlap field names (compiler will choose based on context)
+  - Can have multiple `impl` blocks
+- Traits are like interfaces
+  - 
 
 ## Functions
 
@@ -160,6 +190,29 @@ This is my notes and samples from learning rust
   - Parameters must be typed
   - Return type must be typed
   - Definition: `fn add(a: i32, b: i32) -> i32`
+- Entry point is `fn main()`
+- `!` at the end of a function name denotes a macro
+  - `println!` is a macro
+    - `{}` for placeholders, prints via `std::fmt::Diaplay` trait
+    - `{:?}` for debug
+    - `{:b}` for binary, `{:x}` for hex,  `{:o}` for octal
+    - `{:?}` prints via `Debug` trait, `{:#?}` pretty prints this
+      - `#[derive(Debug)]` will auto implement a basic `Debug`
+      - `dbg!(&rect)` will print out the structure and return ownership
+- Lifetimes
+  - Passed in like generic but with a leading `'`
+  - Specified the lifetime of 1 or more references passed in
+- Generics
+  - Capital letter for the type
+    - `add<T: std::ops::Add<Output = T>>(a: T, b: T) -> T`
+  - Where clause can be used to apply additional constraints
+
+## Modules
+
+- Dependencies listed in the `cargo.toml` file
+  - `cargo add` to add using utility 
+- `use` to bring into local scope
+- `::` to move into namespace / type
 
 ## Control Flow
 
@@ -168,16 +221,28 @@ This is my notes and samples from learning rust
   - `if a { b } else { c }`
   - Can include unwrapping:
     - `if let Some(x) = a { x } else { -1 }`
-- `for a in array`
-  - Can loop over an `.iter()`
+- `match` - pattern matching
+  - like a `switch` statement but must cover every case
+  - single values, ranges (with `..`), lists (with '|') and catch all (`_`)
+- `for a in container`
+  - container can't be accessed post loop, use a reference if still needed
+  - Make a mutable reference if need to alter item (`&mut collection`)
+  - Behind the scenes becomes
+    - `collection` ==> `IntoIterator::into_iter(collection)`
+    - `&collection` ==> `collection.iter()`
+    - `&mut collection` ==> `collection.iter_mut()`
+  - Use `_` if you don't want the value of item (e.g. loop over 10 times)
+  - Avoid old style for loop to access collection items (performance, safety)
 - `loop`
   - Is an expression with a return value
   - Infinite loop
 - `while`
   - Is an expression with a return value
   - As with if no brackets on condition
+- `continue` to skip
 - `break` to exit loops
   - Can take an expression to return the value from the loop
+  - Can also target labels: `break 'outer;` and then mark loop with `'outer:`
 
 ## Ownership
 
@@ -215,3 +280,20 @@ This is my notes and samples from learning rust
   - Passing a String would move the ownership
   - It would be dropped when function ends
   - Returning values likewise acts as above
+- References and Borrowing
+  - If a Type is prefixed with `&` it is a reference
+  - Passed in with an `&`
+  - `&mut` is mutable reference
+    - Makes it very apparent if a pure function or not
+    - If a mutable reference, no other references at same time
+    - Define extra scopes as needed (`{}`)
+    - Compile (since 2018) will scope references releasing after  last time used
+  - Ownership not moved
+  - Opposite of `&` is `*` (dereferencing)
+  - Reference cant live longer than owner (compile error)
+- String Slice `&str`
+  - Borrows part of a String
+  - Protects against string mutation
+  - String literals are `&str`
+  - Use in preference to `String` for immutable inputs
+- Similar slices for other array types
